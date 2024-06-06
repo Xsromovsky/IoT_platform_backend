@@ -23,6 +23,7 @@ class User(db.Model, UserMixin):
 class Device(db.Model):
     dev_id = db.Column(db.Integer, primary_key=True)
     dev_name = db.Column(db.String(50), nullable=False)
+    dev_type = db.Column(db.String(50))
     dev_token = db.Column(db.String(64), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     

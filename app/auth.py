@@ -1,7 +1,7 @@
 from functools import wraps
 from flask import request, jsonify
 import jwt
-from app.models import User
+from app.models import User, Device
 
 SECRET_KEY = 'your_secret_key'
 REFRESH_SECRET_KEY = 'your_refresh_secret_key'
@@ -47,4 +47,28 @@ def refresh_token_required(f):
             return jsonify({'Message': 'Refresh token is invalid'}), 403
         
         return f(current_user, *args, **kwargs)
+    return decorated
+
+def device_token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+        if 'Authorization' in request.headers:
+            token = request.headers['Authorization']
+            if token.startswith('Bearer '):
+                token = token.split(" ")[1]
+        
+        if not token:
+            return jsonify({'message': 'Device token is missing!'}), 403
+
+        try:
+            data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+            current_device = Device.query.get(data['dev_name'])
+        except jwt.ExpiredSignatureError:
+            return jsonify({'message': 'Token has expired!'}), 403
+        except jwt.InvalidTokenError:
+            return jsonify({'message': 'Token is invalid!'}), 403
+
+        return f(current_device, *args, **kwargs)
+
     return decorated
