@@ -25,5 +25,6 @@ class Device(db.Model):
     dev_name = db.Column(db.String(50), nullable=False)
     dev_type = db.Column(db.String(50))
     dev_token = db.Column(db.String(64), nullable=False)
+    dev_measurement = db.Column(db.String(128), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     
