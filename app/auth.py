@@ -2,10 +2,12 @@ from functools import wraps
 from flask import request, jsonify
 import jwt
 from app.models import User, Device
+import os
 
-SECRET_KEY = 'your_secret_key'
-REFRESH_SECRET_KEY = 'your_refresh_secret_key'
-
+# SECRET_KEY = 'your_secret_key'
+# REFRESH_SECRET_KEY = 'your_refresh_secret_key'
+SECRET_KEY = os.getenv('SECRET_KEY')
+REFRESH_SECRET_KEY = os.getenv('REFRESH_SECRET_KEY')
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):

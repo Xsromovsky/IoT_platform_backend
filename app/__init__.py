@@ -2,6 +2,8 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from config import Config
 from influxdb_client import InfluxDBClient
+from dotenv import load_dotenv
+import os
 
 db = SQLAlchemy()
 influxdb_client = None
@@ -10,6 +12,7 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
     db.init_app(app)
+    
     
     global influxdb_client
     influxdb_client = InfluxDBClient(
