@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db, influxdb_client
-from app.models import User, Device
+from app.models import Device
 from app.auth import token_required, refresh_token_required, device_token_required, SECRET_KEY, REFRESH_SECRET_KEY
 from influxdb_client import Point, WriteOptions
 from influxdb_client.client.write_api import SYNCHRONOUS
@@ -14,82 +14,6 @@ import logging
 import json
 
 bp_device = Blueprint('device_routes', __name__)
-
-
-# @bp.route('/')
-# def home():
-#     return "Hello, world!"
-
-
-# @bp.route('/api/login', methods=['POST'])
-# def login():
-#     data = request.get_json()
-#     username = data.get('username')
-#     password = data.get('password')
-
-#     try:
-#         user = User.query.filter_by(username=username).first()
-#         if user is None or not user.check_password_hash(password):
-#             return jsonify({'message': 'Invalid credentials'}), 401
-
-#         # access_token = jwt.encode({
-#         #     'user_id': user.id,
-#         #     'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=1),
-#         #     'iat': datetime.datetime.now(datetime.timezone.utc)
-#         # }, SECRET_KEY)
-
-#         # refresh_token = jwt.encode({
-#         #     'user_id': user.id,
-#         #     'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=7),
-#         #     'iat': datetime.datetime.now(datetime.timezone.utc)
-#         # }, REFRESH_SECRET_KEY)
-
-#         access_token = generate_session_token(user_id=user.id)
-#         refresh_token = generate_refresh_token(user_id=user.id)
-#         user.set_refresh_token(refresh_token)
-
-#         return jsonify({'access_token': access_token, 'refresh_token': refresh_token})
-#     except Exception as e:
-#         return jsonify({'error': f"Server error: {e.message}"}), 500
-
-
-# @bp.route('/api/register', methods=['POST'])
-# def register():
-#     data = request.get_json()
-#     username = data.get('username')
-#     password = data.get('password')
-
-#     try:
-#         if User.query.filter_by(username=username).first() is not None:
-#             return jsonify({'message': 'User already exists'}), 400
-
-#         user = User(username=username)
-
-#         user.set_password(password)
-#         db.session.add(user)
-#         db.session.commit()
-
-#         return jsonify({'message': 'User registered successfully'}), 201
-#     except Exception as e:
-#         return jsonify({'error': f"Server error: {e.message}"}), 500
-
-# # @bp.route('/api/protected', methods=['GET'])
-# # @token_required
-# # def protected_route(current_user):
-# #     return jsonify({'message': f'Hello, {current_user.username}! This is a protected route.'})
-
-
-# @bp.route('/api/refresh', methods=['POST'])
-# @refresh_token_required
-# def refresh_token(current_user):
-#     try:
-#         access_token = generate_session_token(user_id=current_user.id)
-
-#         return jsonify({'access_token': access_token}), 201
-#     except Exception as e:
-#         return jsonify({'error': f"Server error: {e.message}"}), 500
-
-# INFLUX API
 
 
 @bp_device.route('/add-device', methods=['POST'])
@@ -209,7 +133,7 @@ def receive_device_data():
 def query_device_data(current_user):
     device_token = request.args.get('dev_token')
     start = request.args.get('start')
-    stop = datetime.datetime.now(datetime.timezone.utc).isoformat() + 'Z'
+    # stop = datetime.datetime.now(datetime.timezone.utc).isoformat() + 'Z'
     try:
         current_device = Device.query.filter_by(
             dev_token=device_token, user_id=current_user.id).first()
@@ -289,10 +213,6 @@ def delete_device_by_id(current_user, device_id):
         predicate = f'device_name="{device.dev_name}"'
         delete_device_influxdb.delete(start, stop, predicate, 'test', 'my_org')
 
-        # query_api = influxdb_client.query_api()
-        # query = f'DROP SERIES FROM "devices" WHERE "device_name" = "dev_name1000"'
-        # query_api.query(org='my_org', query=query)
-
         return jsonify({'message': "Device successfully deleted"}), 200
     except Exception as e:
         print(f"error: {e}")
@@ -300,79 +220,3 @@ def delete_device_by_id(current_user, device_id):
         return jsonify({"message": "Error deleting device"}), 500
 
 ##############################
-
-
-# @bp_device.route('/influxdb/delete', methods=['DELETE'])
-# @token_required
-# def delete_all_series(current_user):
-#     delete_api = influxdb_client.delete_api()
-#     start = "1970-01-01T00:00:00Z"
-#     stop = datetime.datetime.now(
-#         datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-#     try:
-
-#         query_api = influxdb_client.query_api()
-#         query = "DROP SERIES FROM 'devices'"
-#         delete_api.delete(
-#             start, stop, '_measurement="devicessss"', 'test', 'my_org')
-
-#         return jsonify({'message': "all series are dropped!"}), 200
-#     except Exception as e:
-#         print(f"error: {e}")
-#         return jsonify({'message': 'error dropping series'}), 500
-
-
-# data_points = [
-#     {
-#         "measurement": "test_measurement",
-#         "tags": {
-#             "device_id": "3",
-#             "device_name": "dev_name3",
-#             "sensor_type": "temperature"
-#         },
-#         "fields": {
-#             "value": 39.62047577634045
-#         },
-
-#     },
-#     {
-#         "measurement": "test_measurement",
-#         "tags": {
-#             "device_id": "3",
-#             "device_name": "dev_name3",
-#             "sensor_type": "humidity"
-#         },
-#         "fields": {
-#             "value": 38.0
-#         },
-
-#     },
-#     {
-#         "measurement": "test_measurement",
-#         "tags": {
-#             "device_id": "3",
-#             "device_name": "dev_name3",
-#             "sensor_type": "co2"
-#         },
-#         "fields": {
-#             "value": 368.60055959569934
-#         },
-
-#     }
-# ]
-
-
-# @bp_device.route('/influxdb/test', methods=['POST'])
-# @token_required
-# def test(current_user):
-
-#     write_api = influxdb_client.write_api(
-#         write_options=WriteOptions(batch_size=10, flush_interval=10000))
-#     try:
-#         write_api.write(
-#             bucket="test", org=current_app.config['INFLUXDB_ORG'], record=data_points)
-
-#         return jsonify({'message': "created!"}), 200
-#     except Exception as e:
-#         print(f"error: {e}")
-#         return jsonify({'message': 'error dropping series'}), 500

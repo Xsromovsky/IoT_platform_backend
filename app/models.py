@@ -2,12 +2,13 @@ from flask_login import UserMixin
 from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False, unique=True)
     password_hash = db.Column(db.String(256), nullable=False)
-    refresh_token = db.Column(db.String(512))
+    refresh_token = db.Column(db.String(512), nullable=True)
 
     
     def set_password(self, password):
@@ -23,8 +24,22 @@ class User(db.Model, UserMixin):
 class Device(db.Model):
     dev_id = db.Column(db.Integer, primary_key=True)
     dev_name = db.Column(db.String(50), nullable=False)
-    dev_type = db.Column(db.String(50))
+    dev_type = db.Column(db.String(50), nullable=False)
     dev_token = db.Column(db.String(64), nullable=False)
     dev_measurement = db.Column(db.String(128), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     
+class BlacklistToken(db.Model):
+    __tablename__ = 'blacklist_tokens'
+    id = db.Column(db.Integer, primary_key=True)
+    token = db.Column(db.String(512), unique=True, nullable=False)
+    blacklisted_on = db.Column(db.DateTime, nullable=False)
+
+    def __init__(self, token):
+        self.token = token
+        self.blacklisted_on = datetime.now()
+
+    @staticmethod
+    def check_blacklist(auth_token):
+        res = BlacklistToken.query.filter_by(token=auth_token).first()
+        return bool(res)

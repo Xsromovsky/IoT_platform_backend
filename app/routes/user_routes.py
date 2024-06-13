@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 # from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
-from app.models import User
+from app.models import User, BlacklistToken
 from app.auth import token_required, refresh_token_required
 # from app.utils.dev_token_generator import generate_api_token
 from app.utils.user_token_generator import generate_refresh_token, generate_session_token
@@ -82,3 +82,26 @@ def refresh_token(current_user):
         return jsonify({'access_token': access_token}), 201
     except Exception as e:
         return jsonify({'error': f"Server error: {e.message}"}), 500
+
+
+
+@bp_user.route('/logout', methods=['GET'])
+@token_required
+def logout(current_user):
+    auth_header = request.headers.get('Authorization')
+    if auth_header:
+        token = auth_header
+        try:
+            blacklist_token = BlacklistToken(token=token)
+            db.session.add(blacklist_token)
+            
+            current_user.refresh_token = None
+            
+            db.session.commit()
+            
+            return jsonify({'message': 'Successfully logged out.'}), 200
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'message': 'Error logging out, please try again.'}), 500
+    else:
+        return jsonify({'message': 'Token is missing!'}), 403

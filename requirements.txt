@@ -1,8 +1,12 @@
+alembic==1.13.1
 Flask==3.0.3
 Flask_Login==0.6.3
+Flask_Migrate==4.0.7
 flask_sqlalchemy==3.1.1
 influxdb_client==1.43.0
 PyJWT==2.8.0
 PyJWT==2.8.0
 python-dotenv==1.0.1
+SQLAlchemy==2.0.30
 Werkzeug==3.0.3
+pymysql

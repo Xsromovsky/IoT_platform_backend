@@ -1,7 +1,7 @@
 from functools import wraps
 from flask import request, jsonify
 import jwt
-from app.models import User, Device
+from app.models import BlacklistToken, User, Device
 import os
 
 # SECRET_KEY = 'your_secret_key'
@@ -20,6 +20,9 @@ def token_required(f):
         if not token:
             return jsonify({'message': 'Token is missing!'}), 403
 
+        if BlacklistToken.check_blacklist(token):
+            return jsonify({'message': 'Token has been blacklisted!'}), 403
+        
         try:
             data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
             current_user = User.query.get(data['user_id'])
@@ -43,6 +46,8 @@ def refresh_token_required(f):
         try:
             data = jwt.decode(token, REFRESH_SECRET_KEY, algorithms=["HS256"])
             current_user = User.query.get(data['user_id'])
+            if current_user.refresh_token != token:
+                return jsonify({'Message': 'Invalid refresh token'}), 403
         except jwt.ExpiredSignatureError:
             return jsonify({'Message': 'Refresh token has expired'}), 403
         except jwt.InvalidTokenError:
