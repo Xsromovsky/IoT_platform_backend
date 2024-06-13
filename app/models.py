@@ -6,8 +6,8 @@ from flask_sqlalchemy import SQLAlchemy
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False, unique=True)
-    password_hash = db.Column(db.String(128), nullable=False)
-    refresh_token = db.Column(db.String(256))
+    password_hash = db.Column(db.String(256), nullable=False)
+    refresh_token = db.Column(db.String(512))
 
     
     def set_password(self, password):
