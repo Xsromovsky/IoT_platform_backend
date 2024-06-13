@@ -1,0 +1,13 @@
+temp/
+
+app/__pychache__/
+
+app/routes/__pychache__/
+
+app/utils/__pychache__/
+
+__pychache__/
+
+.env
+
+
