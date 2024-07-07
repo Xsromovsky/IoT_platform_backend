@@ -16,7 +16,7 @@ import json
 bp_device = Blueprint('device_routes', __name__)
 
 
-@bp_device.route('/add-device', methods=['POST'])
+@bp_device.route('/device/add', methods=['POST'])
 @token_required
 def add_new_device(current_user):
     data = request.get_json()

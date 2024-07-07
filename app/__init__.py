@@ -3,18 +3,21 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from config import Config
 from influxdb_client import InfluxDBClient
+from flask_mail import Mail
 import os
 
 db = SQLAlchemy()
 migrate = Migrate()
 influxdb_client = None
+mail = Mail()
+
 
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
     db.init_app(app)
     migrate.init_app(app, db)
-    
+    mail.init_app(app)
     global influxdb_client
     influxdb_client = InfluxDBClient(
         url=os.getenv('INFLUXDB_URL'),
